@@ -10,6 +10,8 @@ pl_par = spar.add_parser('playlist', help='Download a playlist')
 pl_par.add_argument('playlist_id', help='The id of the playlist (usually a hash at the end of the url.)')
 son = spar.add_parser('song', help='Download one song')
 son.add_argument('song_id', help='The id of the song (usually a hash at the end of the url.)')
+sear = spar.add_parser('search', help="Search for a song")
+sear.add_argument('string', help="the thing you want to search for")
 args = par.parse_args()
 
 ytdls = {
@@ -65,7 +67,16 @@ def songs(pl):
             if os.path.exists(f'{title}.mp4'):
                 os.remove(f'{title}.mp4')
 
-    
+def search(stf):
+    result = ytm.search(stf)
+     
+    for resu in result:
+        if resu['resultType'] == 'song':
+            arts = resu['artists']
+            arts2 = arts[0]
+
+            print(f'{resu['videoId']}: {resu['title']}, by {arts2['name']}')
+
 def pls(pl):
     answer = str(input("""A new 'music' folder will be created and all\navailable music will be downloaded there.\nContinue? [Y/n]"""))
                  
@@ -114,6 +125,8 @@ try:
         except KeyError as err:
             print("Unable to find a song from that id.")
             raise SystemExit()
+    elif args.command == 'search':
+        search(args.string)
     else:
         print("No correct argument found, type -h to list commands.")
 except KeyboardInterrupt:
