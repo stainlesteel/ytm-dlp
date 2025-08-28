@@ -62,7 +62,7 @@ def songs(pl):
                 os.remove(f'{title}.mp4')
 
 def search(stf):
-    result = ytm.search(stf, filter= ('songs', 'albums', 'playlists'))
+    result = ytm.search(stf)
      
     for resu in result:
         if resu['resultType'] == 'song':
@@ -71,7 +71,12 @@ def search(stf):
 
             print(f'Song: {resu['videoId']}: {resu['title']}, by {arts2['name']}')
         if resu['resultType'] == 'album':
-            print(f'Album: {resu['title']}')
+            arts = resu['artists']
+            arts2 = arts[0]
+
+            print(f'Album: {resu['playlistId']}: {resu['title']}. by {arts2['name']}')
+        else:
+            pass
 
 def pls(pl):
     answer = str(input("""A new 'music' folder will be created and all\navailable music will be downloaded there.\nContinue? [Y/n]"""))
