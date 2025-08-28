@@ -12,14 +12,13 @@ son = spar.add_parser('song', help='Download one song')
 son.add_argument('song_id', help='The id of the song (usually a hash at the end of the url.)')
 sear = spar.add_parser('search', help="Search for a song")
 sear.add_argument('string', help="the thing you want to search for")
+albums = spar.add_parser('album', help='Download an album')
+albums.add_argument('album_id', help='The id of the album you want to download ( usually')
 args = par.parse_args()
 
 ytdls = {
-    'format': 'bestaudio/best',
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
     }],
     'outtmpl': os.path.join('music', '%(title)s.%(ext)s'),
     'keepvideo': False,
@@ -33,14 +32,9 @@ ytm = YTMusic()
 
 
 def songs(pl):
-    ## TODO // finish this function
-
     ytdll = {
-        'format': 'bestaudio/best',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
         }],
         'outtmpl': '%(title)s.%(ext)s',
         'keepvideo': False,
@@ -68,14 +62,16 @@ def songs(pl):
                 os.remove(f'{title}.mp4')
 
 def search(stf):
-    result = ytm.search(stf)
+    result = ytm.search(stf, filter= ('songs', 'albums', 'playlists'))
      
     for resu in result:
         if resu['resultType'] == 'song':
             arts = resu['artists']
             arts2 = arts[0]
 
-            print(f'{resu['videoId']}: {resu['title']}, by {arts2['name']}')
+            print(f'Song: {resu['videoId']}: {resu['title']}, by {arts2['name']}')
+        if resu['resultType'] == 'album':
+            print(f'Album: {resu['title']}')
 
 def pls(pl):
     answer = str(input("""A new 'music' folder will be created and all\navailable music will be downloaded there.\nContinue? [Y/n]"""))
@@ -111,6 +107,54 @@ def pls(pl):
             if os.path.exists(f'music/{title}.mp4'):
                 os.remove(f'music/{title}.mp4')
 
+
+def album(pl):
+    answer = str(input("""A new folder will be created and all\navailable music will be downloaded there.\nContinue? [Y/n]"""))
+                 
+    if answer.lower() == 'n':
+        raise SystemExit()
+
+    try:
+        plis = ytm.get_album(pl)
+    except: 
+        bid = ytm.get_album_browse_id(pl)
+        plis = ytm.get_album(bid)
+
+    tracks = plis['tracks']
+
+    if not os.path.exists(f'{plis['title']}'):
+        os.mkdir(f'{plis['title']}', 0o755)
+    lens = len(tracks)
+
+    foo = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+        }],
+        'outtmpl': os.path.join(plis['title'], '%(title)s.%(ext)s'),
+        'keepvideo': False,
+        'quiet': True,
+    }
+    print(f'{lens} songs found.')
+    num = 0
+    for track in tracks:
+        num += 1
+
+        title = track['title']
+        id = track['videoId']
+        url = f'{burl}{id}'
+        if os.path.exists(f'{plis['title']}/{title}.*'):
+            pass
+            print(f"{title} already exists.")
+        else:
+            with yt_dlp.YoutubeDL(foo) as ydl:
+                print(f'[{num}/{lens}] Downloading {title}')
+                ydl.download([url])
+                print(f'[{num}/{lens}] Downloaded {title}')
+
+            if os.path.exists(f'{plis['title']}/{title}.mp4'):
+                os.remove(f'{plis['title']}/{title}.mp4')
+
 try:
     if args.command == 'playlist':
         try:
@@ -127,6 +171,12 @@ try:
             raise SystemExit()
     elif args.command == 'search':
         search(args.string)
+    elif args.command == 'album':
+        try:
+            album(args.album_id)
+        except KeyError:
+            print("Can't download an album off that id.")
+            raise SystemExit()
     else:
         print("No correct argument found, type -h to list commands.")
 except KeyboardInterrupt:
