@@ -4,8 +4,6 @@ Search for, download songs and playlists on CLI.
 ## Installation
 ### Generic Linux (x86-64)
 A portable generic linux binary is available.
-### Fedora, RHEL, CentOS, .etc
-Will be available in the 'Releases' tab.
 ### Python3.x
 1. Install Python3.11 and the code.
 2. Run `pip install -r requc.txt`
